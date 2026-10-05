@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>Raj Kapoor Voice WordPad</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f3f2f1; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        h2 { color: #107c41; margin-bottom: 15px; font-size: 26px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .toolbar { width: 100%; max-width: 850px; background-color: #ffffff; padding: 10px 15px; border: 1px solid #d2d0ce; border-bottom: none; border-radius: 4px 4px 0 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .btn-tool { padding: 4px 8px; font-size: 12px; font-weight: 600; border: 1px solid #dadce0; border-radius: 4px; background-color: #ffffff; cursor: pointer; color: #323130; display: inline-flex; align-items: center; transition: all 0.2s; }
+        .btn-tool:hover { background-color: #f3f2f1; border-color: #a19f9d; }
+        .btn-mic { background-color: #ea4335; color: white; border: none; font-size: 13px; padding: 6px 12px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .btn-mic:hover { background-color: #d93025; }
+        .btn-mic.active { background-color: #34a853; animation: pulse 1.5s infinite; }
+        .btn-download { background-color: #107c41; color: white; border: none; }
+        .btn-download:hover { background-color: #0b5930; }
+        .font-size-select { padding: 4px 5px; font-size: 12px; border: 1px solid #dadce0; border-radius: 4px; outline: none; }
+        .align-btn { min-width: 30px; justify-content: center; font-size: 16px; line-height: 1; padding: 4px 5px; }
+        #status { width: 100%; max-width: 850px; background: #faf9f8; padding: 5px 15px; border: 1px solid #d2d0ce; border-bottom: none; font-size: 13px; color: #605e5c; }
+        
+        /* मल्टिपल स्पेस और वर्ड रैपिंग को बिना किसी गड़बड़ी के दिखाने के लिए प्री-रैप सेटिंग्स */
+        .word-page { width: 100%; max-width: 850px; min-height: 500px; background-color: #ffffff; padding: 40px 50px; border: 1px solid #d2d0ce; border-radius: 0 0 4px 4px; font-size: 14px; text-align: left; line-height: 1.5; color: #323130; white-space: pre-wrap; word-break: break-word; outline: none; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        
+        /* Mobile touch-friendly UI */
+        @media (max-width: 700px) {
+            body { padding: 8px; }
+            h2 { font-size: 21px; margin-bottom: 10px; }
+            .toolbar { max-width: 100%; padding: 10px; gap: 8px; justify-content: center; }
+            .btn-tool { min-height: 44px; padding: 8px 12px; font-size: 16px; border-radius: 8px; touch-action: manipulation; }
+            .btn-mic { min-height: 48px; padding: 10px 18px; font-size: 16px; width: 100%; }
+            .btn-download { flex: 1 1 100%; }
+            .font-size-select { min-height: 44px; padding: 8px 10px; font-size: 16px; }
+            .align-btn { min-width: 44px; font-size: 20px; }
+            #status { max-width: 100%; padding: 9px 10px; font-size: 14px; line-height: 1.4; }
+            .word-page { max-width: 100%; min-height: 70vh; padding: 20px 16px; font-size: 14px; line-height: 1.5; border-radius: 0 0 8px 8px; -webkit-user-select: text; user-select: text; }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(52, 168, 83, 0.6); }
+            70% { box-shadow: 0 0 0 10px rgba(52, 168, 83, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 168, 83, 0); }
+        }
+
+@media print {
+  
+    body { background-color: #ffffff; padding: 0; margin: 0; }
+    
+   
+    h2, .toolbar, #status { display: none !important; }
+    
+   
+    .word-page { 
+        border: none !important; 
+        box-shadow: none !important; 
+        padding: 0 !important; 
+        width: 100% !important; 
+        max-width: 100% !important; 
+        min-height: auto !important;
+    }
+}
+
+    
+</style>
+</head>
+<body>
+
+    <h2>📝 Raj Kapoor Voice WordPad</h2>
+    
+    <div class="toolbar">
+        <button id="actionBtn" class="btn-tool btn-mic" onclick="startTyping()">🎙️ Start Voice</button>
+        <button class="btn-tool" onclick="formatDoc('bold')"><b>B</b></button>
+        <button class="btn-tool" onclick="formatDoc('italic')"><i>I</i></button>
+        <button class="btn-tool" onclick="formatDoc('underline')"><u>U</u></button>
+        <button class="btn-tool align-btn" title="Align Left" onclick="formatDoc('justifyLeft')">☰</button>
+        <button class="btn-tool align-btn" title="Align Center" onclick="formatDoc('justifyCenter')">≡</button>
+        <button class="btn-tool align-btn" title="Align Right" onclick="formatDoc('justifyRight')">☷</button>
+        
+        <select class="font-size-select" onchange="changeSize(this.value)">
+            <option value="14" selected>Normal</option>
+            <option value="20">Large</option>
+        </select>
+        
+        <button class="btn-tool btn-download" onclick="downloadDoc()">💾 Download .doc File</button>
+<button class="btn-tool" style="background-color: #0078d4; color: white; border: none;" onclick="printDocument()">🖨️ Print Document</button>
+</div>
+    
+    <div id="status">Status: बटन दबाकर बोलना शुरू करें...</div>
+    <div id="output" class="word-page" contenteditable="true"></div>
+
+    <script>
+        let recognition;
+        let isListening = false;
+        let lastInterimNode = null;
+
+        // स्पेस बार की समस्या को जुड़ने से रोकने के लिए डायरेक्ट कीबोर्ड इंटरसेप्टर
+        document.getElementById("output").addEventListener("keydown", function(e) {
+            if (e.key === " ") {
+                e.preventDefault();
+                document.execCommand("insertText", false, "\u00A0");
+            }
+        });
+
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;     
+            recognition.interimResults = true; 
+            recognition.lang = 'hi-IN';        
+            recognition.maxAlternatives = 1; 
+
+            recognition.onresult = function(event) {
+                let interimText = "";
+                let currentFinal = "";
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i] && event.results[i][0] && event.results[i][0].transcript) {
+                        let textChunk = event.results[i][0].transcript;
+                        
+                        textChunk = textChunk.replace(/केदो/g, "केंद्रों");
+                        textChunk = textChunk.replace(/केंटो/g, "केंद्रों");
+                        textChunk = textChunk.replace(/केन्टो/g, "केंद्रों");
+
+                        if (event.results[i].isFinal) {
+                            currentFinal += textChunk + " ";
+                        } else {
+                            interimText += textChunk;
+                        }
+                    }
+                }
+
+                if (currentFinal !== "") {
+                    removeInterimNode();
+                    insertTextAtCursor(currentFinal, false);
+                }
+
+                if (interimText !== "") {
+                    insertInterimText(interimText);
+                } else {
+                    removeInterimNode();
+                }
+            };
+
+            recognition.onstart = function() {
+                isListening = true;
+                document.getElementById("status").innerText = "Status: सुन रहा हूँ... पेज में कहीं भी क्लिक करके बोलें...";
+                document.getElementById("actionBtn").innerText = "🛑 Stop Voice";
+                document.getElementById("actionBtn").classList.add("active");
+                document.getElementById("output").focus();
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                removeInterimNode();
+                document.getElementById("status").innerText = "Status: टाइपिंग रुकी हुई है। आपका दस्तावेज़ सुरक्षित है।";
+                document.getElementById("actionBtn").innerText = "🎙️ Start Voice";
+                document.getElementById("actionBtn").classList.remove("active");
+            };
+        }
+
+        function startTyping() {
+            if (!recognition) {
+                document.getElementById("status").innerText = "Status: इस Chrome में Voice Typing उपलब्ध नहीं है। Android Chrome में इस फाइल को HTTPS वेबसाइट से खोलें और Microphone अनुमति दें।";
+                return;
+            }
+            if (isListening) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    document.getElementById("status").innerText = "Status: Microphone शुरू नहीं हो पाया। Chrome की Microphone अनुमति जाँचें।";
+                }
+            }
+        }
+
+        function printDocument() {
+            // Mobile Chrome में नया popup खोलने के बजाय सीधे इसी पेज का print dialog खोलें।
+            window.print();
+        }
+
+        function insertTextAtCursor(text, isInterim = false) {
+            let sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            
+            let range = sel.getRangeAt(0);
+            range.deleteContents();
+
+            let formattedText = text.replace(/ /g, "\u00A0");
+
+            let node;
+            if (isInterim) {
+                node = document.createElement("span");
+                node.style.color = "#888";
+                node.id = "interim-span";
+                node.appendChild(document.createTextNode(formattedText));
+                range.insertNode(node);
+                range.setStartAfter(node);
+                range.setEndAfter(node);
+            } else {
+                node = document.createTextNode(formattedText);
+                range.insertNode(node);
+                range.setStartAfter(node);
+                range.collapse(false);
+            }
+
+            sel.removeAllRanges();
+            sel.addRange(range);
+            
+            return node;
+        }
+
+        function insertInterimText(text) {
+            removeInterimNode();
+            lastInterimNode = insertTextAtCursor(text, true);
+        }
+
+        function removeInterimNode() {
+            let interimSpan = document.getElementById("interim-span");
+            if (interimSpan) {
+                interimSpan.parentNode.removeChild(interimSpan);
+            }
+            lastInterimNode = null;
+        }
+
+        // --- टूल्स और डाउनलोड फंक्शन्स ---
+        function formatDoc(command) {
+            document.execCommand(command, false, null);
+        }
+
+        let currentFontSize = '14px';
+
+        function changeSize(value) {
+            currentFontSize = value + 'px';
+            const editor = document.getElementById('output');
+            const sel = window.getSelection();
+
+            // यदि text select है तो उसी text का font size बदलें।
+            if (sel.rangeCount && !sel.isCollapsed && editor.contains(sel.anchorNode)) {
+                const range = sel.getRangeAt(0);
+                const span = document.createElement('span');
+                span.style.fontSize = currentFontSize;
+                span.style.lineHeight = '1.5';
+                span.appendChild(range.extractContents());
+                range.insertNode(span);
+
+                const newRange = document.createRange();
+                newRange.selectNodeContents(span);
+                sel.removeAllRanges();
+                sel.addRange(newRange);
+            } else {
+                // बिना selection के आगे लिखे जाने वाले text का default size बदलें।
+                editor.style.fontSize = currentFontSize;
+            }
+        }
+
+        function downloadDoc() {
+            const content = document.getElementById("output").innerHTML;
+            const header = "<!DOCTYPE html><html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><meta name='ProgId' content='Word.Document'><style>" +
+                "@page { size: A4; margin: 2.54cm; } " +
+                "body, body * { font-family: 'Nirmala UI' !important; } " +
+                "body { margin:0; font-family:'Nirmala UI' !important; font-size:12pt; line-height:1.5; mso-font-alt:'Nirmala UI'; } " +
+                "p,div,span,font,td,th { font-family:'Nirmala UI' !important; font-size:12pt; line-height:1.5; mso-font-alt:'Nirmala UI'; } " +
+                "</style><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]--></head><body>";
+            const footer = "</body></html>";
+            const sourceHTML = header + "<div style=\"font-family:'Nirmala UI' !important;font-size:12pt;line-height:1.5;\">" + content + "</div>" + footer;
+
+            try {
+                const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'Raj_Kapoor_Voice_Document.doc';
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(function() {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 1500);
+                document.getElementById("status").innerText = "Status: .doc फाइल डाउनलोड शुरू हो गई है।";
+            } catch (e) {
+                document.getElementById("status").innerText = "Status: .doc डाउनलोड नहीं हो पाया। Chrome में Download की अनुमति जाँचें।";
+            }
+        }
+    </script>
+</body>
+<body>
+
+<div class="dashboard-box">
+    
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<script>
+    function logout() {
+        // वापस लॉगिन पेज पर भेजने के लिए
+        window.location.href = "index.html";
+    }
+</script>
+
+</body>
+</html>
